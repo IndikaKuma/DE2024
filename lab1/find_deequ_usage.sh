@@ -3,7 +3,7 @@
 # Step 1: install nbconvert library that can be used to covert jupyter notebooks to Python files
 
 
-# Step 2: create a director deequ and go to it
+# Step 2: create a directory/folder deequ and go to it
 
 
 # Step 3: clone Github repositories in repos.txt
@@ -12,7 +12,7 @@
 # Step 4: Get the paths of all jupyter notebooks 
 
 
-# Step 5: Convert jupyter notebooks to  python files
+# Step 5: Convert jupyter notebooks to  Python files
 
 
 # Step 6: Merge all Python files into a single file

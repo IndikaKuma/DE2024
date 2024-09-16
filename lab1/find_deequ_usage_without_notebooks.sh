@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Step 1 : create a director deequ and go to it
+# Step 1: create a directory deequ and go to it
 
 
 # Step 2: clone Github repositories in repos.txt
