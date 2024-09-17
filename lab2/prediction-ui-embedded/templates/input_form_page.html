@@ -1,0 +1,38 @@
+<html>
+<head>
+    <title>Diabetes Check Form</title>
+</head>
+<body>
+
+<form action="/checkdiabetes" method="POST">
+    <h1> Check My Diabetes</h1>
+    <label for="ntp">Number of times pregnant:</label>
+    <input type="text" id="ntp" name="ntp" placeholder="ntp"> <br>
+
+    <label for="pgc">Plasma glucose concentration a 2 hours in an oral glucose tolerance test:</label>
+    <input type="text" id="pgc" name="pgc" placeholder="pgc"> <br>
+
+    <label for="dbp">Diastolic blood pressure (mm Hg):</label>
+    <input type="text" id="dbp" name="dbp" placeholder="dbp"> <br>
+
+    <label for="tsft">Triceps skin fold thickness (mm):</label>
+    <input type="text" id="tsft" name="tsft" placeholder="tsft"> <br>
+
+    <label for="si">2-Hour serum insulin (mu U/ml):</label>
+    <input type="text" id="si" name="si" placeholder="si"> <br>
+
+    <label for="bmi">Body mass index:</label>
+    <input type="text" id="bmi" name="bmi" placeholder="bmi"> <br>
+
+    <label for="dpf">Diabetes pedigree function:</label>
+    <input type="text" id="dpf" name="dpf" placeholder="dpf"> <br>
+
+    <label for="age">Age (years):</label>
+    <input type="text" id="age" name="age" placeholder="age"> <br>
+    <p><input type='submit' value='Check'/></p>
+</form>
+
+</body>
+</html>
+
+<!-- check https://flask.palletsprojects.com/en/2.3.x/tutorial/templates/ for information if needed -->
