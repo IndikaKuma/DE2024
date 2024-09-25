@@ -41,5 +41,8 @@
         "--no-cpu-throttling"
       ]
     }
-  ]
+  ],
+   "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
+  }
 }
