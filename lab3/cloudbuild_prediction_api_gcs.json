@@ -1,0 +1,45 @@
+{
+  "steps": [
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-api-gcs:0.0.1",
+        "./lab2/prediction-api-gcs"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-api-gcs:0.0.1"
+      ]
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "entrypoint": "gcloud",
+      "args": [
+        "run",
+        "deploy",
+        "prediction-api-gcs",
+        "--image",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-api-gcs:0.0.1",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--port",
+        "5000",
+        "--cpu",
+        "2",
+        "--memory",
+        "4G",
+        "--allow-unauthenticated",
+        "--update-env-vars",
+        "PROJECT_ID=$PROJECT_ID,MODEL_REPO=models_de2023,MODEL_NAME=model.h5",
+        "--no-cpu-throttling"
+      ]
+    }
+  ]
+}
