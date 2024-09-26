@@ -70,6 +70,10 @@ gcloud compute firewall-rules create node-port-4 --allow tcp:5003
 http://External_IP:5003/
 
 
+# Login to a container
+
+sudo docker exec -it prediction-ui /bin/bash
+
 # Stop and remove all docker containers
 
 sudo docker stop $(sudo docker ps -a -q)
