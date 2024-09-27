@@ -106,13 +106,16 @@ sudo docker exec -it prediction-ui /bin/bash
 # Stop and remove all docker containers
 
 sudo docker stop $(sudo docker ps -a -q)
+
 sudo docker rm $(sudo docker ps -a -q)
+
 sudo docker ps -as
 
 
 # Remove all docker networks and volumes
 
 sudo docker network prune
+
 sudo docker volume prune
 
 # Remove all images
