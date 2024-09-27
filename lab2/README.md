@@ -8,6 +8,7 @@ sudo docker run -p  5002:5000 -v /home/indika_kuma/models:/usr/src/trainapp/mode
 
 gcloud compute firewall-rules create flask-port-3 --allow tcp:5002
 
+http://your_vm_ip:5002/training-api/model
 
 # Extending the Lab Example with Training-API
 
