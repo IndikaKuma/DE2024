@@ -93,6 +93,11 @@ gcloud compute firewall-rules create node-port-4 --allow tcp:5003
 http://External_IP:5003/
 
 
+# Containers and Port Forwarding
+
+sudo iptables -t nat -L
+ A nice article https://iximiuz.com/en/posts/docker-publish-container-ports/
+
 # Login to a container
 
 sudo docker exec -it prediction-ui /bin/bash
