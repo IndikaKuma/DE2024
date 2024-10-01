@@ -105,5 +105,8 @@
         "/workspace/api_url.text"
       ]
     }
+  },
+   "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
   }
 }
