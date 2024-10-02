@@ -1,9 +1,9 @@
-flask
 setuptools
+flask
 pandas
 keras
 tensorflow
-numpy==1.25.2
+numpy==1.26.4
 h5py
 six
 pytest
