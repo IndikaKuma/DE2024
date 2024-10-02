@@ -1,4 +1,5 @@
 flask
+setuptools
 pandas
 keras
 tensorflow
