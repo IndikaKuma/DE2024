@@ -1,0 +1,7 @@
+{
+  "project_id": "your_project_id",
+  "data_bucket": "data bucket",
+  "dataset_uri": "gs://data bucket/training_set.csv",
+  "model_repo": "models bucket",
+  "thresholds_dict_str": "{\"roc\":0.8}"
+}
