@@ -1,8 +1,9 @@
+setuptools
 flask
 pandas
 keras
 tensorflow
-numpy
+numpy==1.26.4
 h5py
 six
 google-cloud-storage
