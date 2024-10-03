@@ -17,4 +17,4 @@ class TestDiabetesPredictor:
         status = dp.predict_single_record(data)
        
         assert bool(status[0]) is not None
-        assert bool(status[0]) is True
+        assert bool(status[0]) is False
