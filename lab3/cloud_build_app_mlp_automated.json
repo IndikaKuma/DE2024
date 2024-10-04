@@ -1,0 +1,112 @@
+{
+  "steps": [
+    {
+       "name": "gcr.io/cloud-builders/gsutil",
+       "args": [
+           "cp",
+		   "gs://${_MODEL_REPO}/mlp_model.h5",
+           "./lab2/prediction-api/model.h5"
+        ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-api:0.0.1",
+        "./lab2/prediction-api"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-ui:0.0.1",
+        "./lab2/prediction-ui"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-api:0.0.1"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-ui:0.0.1"
+      ]
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "entrypoint": "gcloud",
+      "args": [
+        "run",
+        "deploy",
+        "prediction-api",
+        "--image",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-api:0.0.1",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--port",
+        "5000",
+        "--cpu",
+        "2",
+        "--memory",
+        "4G",
+        "--allow-unauthenticated"
+      ],
+      "id": "prediction-api-deploy"
+    },
+    {
+      "name": "ubuntu",
+      "args": [
+        "sleep",
+        "60"
+      ],
+      "waitFor": [
+        "prediction-api-deploy"
+      ],
+      "id": "sleep-delay"
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "entrypoint": "/bin/sh",
+      "args": [
+        "-c",
+        "gcloud run services list --platform managed | grep  https: | head -1 | awk '{print $4}' > /workspace/api_url.text"
+      ],
+      "waitFor": [
+        "sleep-delay"
+      ],
+      "id": "api-url-extraction"
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "entrypoint": "/bin/sh",
+      "args": [
+        "-c",
+        "gcloud run deploy prediction-ui --image ${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/labrepo/prediction-ui:0.0.1 --set-env-vars PREDICTOR_API=$(cat /workspace/api_url.text)/diabetes_predictor/ --region us-central1 --platform managed --port 5000 --cpu 2 --memory 4G --allow-unauthenticated"
+      ],
+      "waitFor": [
+        "api-url-extraction"
+      ]
+    }
+  ],
+  "artifacts": {
+    "objects": {
+      "location": "gs://${_TEMP_REPO}/",
+      "paths": [
+        "/workspace/api_url.text"
+      ]
+    }
+  },
+  "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
+  }
+}

@@ -37,7 +37,7 @@
         "4G",
         "--allow-unauthenticated",
         "--update-env-vars",
-        "PROJECT_ID=$PROJECT_ID,MODEL_REPO=models_de2023,MODEL_NAME=model.h5",
+        "PROJECT_ID=$PROJECT_ID,MODEL_REPO=${_MODEL_REPO},MODEL_NAME=mlp_model.h5",
         "--no-cpu-throttling"
       ]
     }

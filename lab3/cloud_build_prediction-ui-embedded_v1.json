@@ -1,0 +1,75 @@
+{
+  "steps": [
+    {
+      "name": "python:3.12.7",
+      "entrypoint": "pip",
+      "args": [
+        "install",
+        "--upgrade",
+        "pip",
+        "--user"
+      ]
+    },
+    {
+      "name": "python:3.12.7",
+      "entrypoint": "pip",
+      "args": [
+        "install",
+        "-r",
+        "./lab2/prediction-ui-embedded/requirements_dev.txt",
+        "--user"
+      ]
+    },
+    {
+      "name": "python:3.12.7",
+      "entrypoint": "python",
+      "args": [
+        "-m",
+        "pytest",
+        "--junitxml=${SHORT_SHA}_test_log.xml",
+        "./lab2/prediction-ui-embedded/tests"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-ui-embedded:0.0.1",
+        "./lab2/prediction-ui-embedded"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-ui-embedded:0.0.1"
+      ]
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "entrypoint": "gcloud",
+      "args": [
+        "run",
+        "deploy",
+        "prediction-service-embedded",
+        "--image",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/prediction-ui-embedded:0.0.1",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--port",
+        "5000",
+        "--cpu",
+        "2",
+        "--memory",
+        "4G",
+        "--allow-unauthenticated"
+      ]
+    }
+  ],
+   "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
+  }
+}
