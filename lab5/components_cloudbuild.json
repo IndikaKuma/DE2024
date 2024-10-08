@@ -1,0 +1,36 @@
+{
+ "steps": [
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/dataingestor:0.0.1",
+        "./lab5/components/data_ingestor"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/mlptrainer:0.0.1",
+        "./lab5/components/mlp_trainer"
+      ]
+    },
+    {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/dataingestor:0.0.1"
+      ]
+    },
+	 {
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/mlptrainer:0.0.1"
+      ]
+    }
+   ]
+}

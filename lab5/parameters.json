@@ -1,0 +1,7 @@
+{
+  "project_id": "your project id",
+  "data_bucket": "your project data bucket",
+  "trainset_filename": "training_set.csv",
+  "testset_filename": "prediction_set.csv", 
+  "model_repo": "your project model repo"
+}

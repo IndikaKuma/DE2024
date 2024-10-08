@@ -1,0 +1,6 @@
+google-cloud-storage
+pandas
+keras
+tensorflow
+h5py
+pathlib

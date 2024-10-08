@@ -1,0 +1,768 @@
+# PIPELINE DEFINITION
+# Name: diabetes-prdictor-training-pipeline-v2
+# Inputs:
+#    data_bucket: str
+#    model_repo: str
+#    project_id: str
+#    testset_filename: str
+#    trainset_filename: str
+components:
+  comp-compare-model:
+    executorLabel: exec-compare-model
+    inputDefinitions:
+      parameters:
+        lr_metrics:
+          parameterType: STRUCT
+        mlp_metrics:
+          parameterType: STRUCT
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+  comp-condition-1:
+    dag:
+      tasks:
+        predict-mlp:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-predict-mlp
+          inputs:
+            artifacts:
+              features:
+                componentInputArtifact: pipelinechannel--download-data-2-dataset
+              model:
+                componentInputArtifact: pipelinechannel--train-mlp-out_model
+          taskInfo:
+            name: predict-mlp
+        upload-model-to-gcs:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-upload-model-to-gcs
+          dependentTasks:
+          - predict-mlp
+          inputs:
+            artifacts:
+              model:
+                componentInputArtifact: pipelinechannel--train-mlp-out_model
+            parameters:
+              model_repo:
+                componentInputParameter: pipelinechannel--model_repo
+              project_id:
+                componentInputParameter: pipelinechannel--project_id
+          taskInfo:
+            name: upload-model-to-gcs
+    inputDefinitions:
+      artifacts:
+        pipelinechannel--download-data-2-dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        pipelinechannel--train-mlp-out_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        pipelinechannel--compare-model-Output:
+          parameterType: STRING
+        pipelinechannel--model_repo:
+          parameterType: STRING
+        pipelinechannel--project_id:
+          parameterType: STRING
+  comp-condition-2:
+    dag:
+      tasks:
+        predict-lr:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-predict-lr
+          inputs:
+            artifacts:
+              features:
+                componentInputArtifact: pipelinechannel--download-data-2-dataset
+              model:
+                componentInputArtifact: pipelinechannel--train-lr-out_model
+          taskInfo:
+            name: predict-lr
+        upload-model-to-gcs-2:
+          cachingOptions:
+            enableCache: true
+          componentRef:
+            name: comp-upload-model-to-gcs-2
+          dependentTasks:
+          - predict-lr
+          inputs:
+            artifacts:
+              model:
+                componentInputArtifact: pipelinechannel--train-lr-out_model
+            parameters:
+              model_repo:
+                componentInputParameter: pipelinechannel--model_repo
+              project_id:
+                componentInputParameter: pipelinechannel--project_id
+          taskInfo:
+            name: upload-model-to-gcs-2
+    inputDefinitions:
+      artifacts:
+        pipelinechannel--download-data-2-dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        pipelinechannel--train-lr-out_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        pipelinechannel--compare-model-Output:
+          parameterType: STRING
+        pipelinechannel--model_repo:
+          parameterType: STRING
+        pipelinechannel--project_id:
+          parameterType: STRING
+  comp-download-data:
+    executorLabel: exec-download-data
+    inputDefinitions:
+      parameters:
+        bucket:
+          parameterType: STRING
+        file_name:
+          parameterType: STRING
+        project_id:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-download-data-2:
+    executorLabel: exec-download-data-2
+    inputDefinitions:
+      parameters:
+        bucket:
+          parameterType: STRING
+        file_name:
+          parameterType: STRING
+        project_id:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-predict-lr:
+    executorLabel: exec-predict-lr
+    inputDefinitions:
+      artifacts:
+        features:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        results:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-predict-mlp:
+    executorLabel: exec-predict-mlp
+    inputDefinitions:
+      artifacts:
+        features:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        results:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-train-lr:
+    executorLabel: exec-train-lr
+    inputDefinitions:
+      artifacts:
+        features:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        out_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        metrics:
+          parameterType: STRUCT
+  comp-train-mlp:
+    executorLabel: exec-train-mlp
+    inputDefinitions:
+      artifacts:
+        features:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        out_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        metrics:
+          parameterType: STRUCT
+  comp-upload-model-to-gcs:
+    executorLabel: exec-upload-model-to-gcs
+    inputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        model_repo:
+          parameterType: STRING
+        project_id:
+          parameterType: STRING
+  comp-upload-model-to-gcs-2:
+    executorLabel: exec-upload-model-to-gcs-2
+    inputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        model_repo:
+          parameterType: STRING
+        project_id:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-compare-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - compare_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef compare_model(mlp_metrics: dict, lr_metrics: dict) -> str:\n\
+          \    import logging\n    import json\n    import sys\n    logging.basicConfig(stream=sys.stdout,\
+          \ level=logging.INFO)\n    logging.info(mlp_metrics)\n    logging.info(lr_metrics)\n\
+          \    if mlp_metrics.get(\"accuracy\") > lr_metrics.get(\"accuracy\"):\n\
+          \        return \"MLP\"\n    else :\n        return \"LR\"\n\n"
+        image: python:3.10.7-slim
+    exec-download-data:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - download_data
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'pandas' 'google-cloud-storage'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef download_data(project_id: str, bucket: str, file_name: str, dataset:\
+          \ Output[Dataset]):\n    '''download data'''\n    from google.cloud import\
+          \ storage\n    import pandas as pd\n    import logging \n    import sys\n\
+          \n    logging.basicConfig(stream=sys.stdout, level=logging.INFO)\n\n   \
+          \ # Downloaing the file from a google bucket \n    client = storage.Client(project=project_id)\n\
+          \    bucket = client.bucket(bucket)\n    blob = bucket.blob(file_name)\n\
+          \    blob.download_to_filename(dataset.path + \".csv\")\n    logging.info('Downloaded\
+          \ Data!')\n\n"
+        image: python:3.10.7-slim
+    exec-download-data-2:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - download_data
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'pandas' 'google-cloud-storage'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef download_data(project_id: str, bucket: str, file_name: str, dataset:\
+          \ Output[Dataset]):\n    '''download data'''\n    from google.cloud import\
+          \ storage\n    import pandas as pd\n    import logging \n    import sys\n\
+          \n    logging.basicConfig(stream=sys.stdout, level=logging.INFO)\n\n   \
+          \ # Downloaing the file from a google bucket \n    client = storage.Client(project=project_id)\n\
+          \    bucket = client.bucket(bucket)\n    blob = bucket.blob(file_name)\n\
+          \    blob.download_to_filename(dataset.path + \".csv\")\n    logging.info('Downloaded\
+          \ Data!')\n\n"
+        image: python:3.10.7-slim
+    exec-predict-lr:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - predict_lr
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn==1.3.2'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef predict_lr(model: Input[Model], features: Input[Dataset], results:\
+          \ Output[Dataset]):\n    import pandas as pd\n    import pickle  \n    import\
+          \ json\n    import logging\n    import sys\n    import os\n\n    logging.basicConfig(stream=sys.stdout,\
+          \ level=logging.INFO)\n\n    df = pd.read_csv(features.path+\".csv\")\n\n\
+          \    filename = model.path + \".pkl\"\n\n    #Loading the saved model\n\
+          \    model_lr = pickle.load(open(filename, 'rb'))\n\n    xNew = df[['ntp',\
+          \ 'pgc', 'dbp', 'tsft', 'si', 'bmi', 'dpf', 'age']]\n\n    dfcp = df.copy()\
+          \   \n    y_classes = model_lr.predict(xNew)\n    logging.info(y_classes)\n\
+          \    dfcp['pclass'] = y_classes.tolist()     \n    dfcp.to_csv(results.path\
+          \ + \".csv\" , index=False, encoding='utf-8-sig')\n\n"
+        image: python:3.10.7-slim
+    exec-predict-mlp:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - predict_mlp
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'pandas' 'keras'\
+          \ 'tensorflow' 'h5py' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef predict_mlp(model: Input[Model], features: Input[Dataset], results:\
+          \ Output[Dataset]):\n    import pandas as pd\n    from keras.models import\
+          \ load_model\n    import json\n    import logging\n    import sys\n    import\
+          \ os\n\n    logging.basicConfig(stream=sys.stdout, level=logging.INFO)\n\
+          \n    df = pd.read_csv(features.path+\".csv\")\n\n    xNew = df.loc[:, ['ntp',\
+          \ 'pgc', 'dbp', 'tsft', 'si', 'bmi', 'dpf', 'age']].values\n    #load the\
+          \ model\n    model_mlp = load_model(model.path + '.h5')\n    dfcp = df.copy()\n\
+          \    result = model_mlp.predict(xNew)   \n    y_classes = result.argmax(axis=-1)\n\
+          \    logging.info(y_classes)\n    dfcp['pclass'] = y_classes.tolist()\n\
+          \    dfcp.to_csv(results.path + \".csv\" , index=False, encoding='utf-8-sig')\n\
+          \n"
+        image: python:3.10.7-slim
+    exec-train-lr:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_lr
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn==1.3.2'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_lr (features: Input[Dataset], out_model: Output[Model])\
+          \ -> NamedTuple('outputs', metrics=dict):\n    '''train a LogisticRegression\
+          \ with default parameters'''\n    import pandas as pd\n    from sklearn.linear_model\
+          \ import LogisticRegression\n    from sklearn import metrics\n    from sklearn.model_selection\
+          \ import train_test_split\n    import json\n    import logging \n    import\
+          \ sys\n    import os\n    import pickle  \n\n    logging.basicConfig(stream=sys.stdout,\
+          \ level=logging.INFO)\n\n    df = pd.read_csv(features.path+\".csv\")\n\n\
+          \    logging.info(df.columns)        \n\n    x_train, x_test, y_train, y_test\
+          \ = train_test_split(df.drop('class',axis=1), \n                       \
+          \                             df['class'], test_size=0.30, \n          \
+          \                                          random_state=101)\n    model_lr\
+          \ = LogisticRegression()\n    model_lr.fit(x_train,y_train)\n\n    metrics_dict\
+          \ = {\n        \"accuracy\": model_lr.score(x_test, y_test)\n    }\n   \
+          \ logging.info(metrics_dict)  \n\n    out_model.metadata[\"file_type\"]\
+          \ = \".pkl\"\n    out_model.metadata[\"algo\"] = \"lr\"\n   # Save the model\n\
+          \    m_file = out_model.path + \".pkl\"\n    with open(m_file, 'wb') as\
+          \ f:  \n        pickle.dump(model_lr, f)   \n\n    outputs = NamedTuple('outputs',\
+          \ metrics=dict)\n    return outputs(metrics_dict)\n\n"
+        image: python:3.10.7-slim
+    exec-train-mlp:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_mlp
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'pandas' 'keras'\
+          \ 'tensorflow' 'h5py' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_mlp (features: Input[Dataset], out_model: Output[Model])\
+          \ -> NamedTuple('outputs', metrics=dict):\n    '''train a MLP with default\
+          \ parameters'''\n    import pandas as pd\n    from keras.layers import Dense\n\
+          \    from keras.models import Sequential\n    import json\n    import logging\
+          \ \n    import sys\n    import os\n\n    logging.basicConfig(stream=sys.stdout,\
+          \ level=logging.INFO)\n\n    df = pd.read_csv(features.path+\".csv\")\n\n\
+          \    logging.info(df.columns)\n\n    # split into input (X) and output (Y)\
+          \ variables\n    X = df.loc[:, ['ntp', 'pgc', 'dbp', 'tsft', 'si', 'bmi',\
+          \ 'dpf', 'age']].values\n    Y = df.loc[:, ['class']].values\n    # define\
+          \ model\n    model_mlp = Sequential()\n    model_mlp.add(Dense(12, input_dim=8,\
+          \ activation='relu'))\n    model_mlp.add(Dense(8, activation='relu'))\n\
+          \    model_mlp.add(Dense(1, activation='sigmoid'))\n    # compile model\n\
+          \    model_mlp.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])\n\
+          \    # Fit the model\n    model_mlp.fit(X, Y, epochs=150, batch_size=10,\
+          \ verbose=0)\n    # evaluate the model\n    scores = model_mlp.evaluate(X,\
+          \ Y, verbose=0)\n    logging.info(model_mlp.metrics_names)\n    metrics_dict\
+          \ = {\n        \"accuracy\": scores[1],\n        \"loss\": scores[0],\n\
+          \    }   \n    logging.info(metrics_dict)   \n\n    out_model.metadata[\"\
+          file_type\"] = \".h5\"\n    out_model.metadata[\"algo\"] = \"mlp\"\n   \
+          \ # Save the model\n    m_file = out_model.path + \".h5\"\n    model_mlp.save(m_file)\n\
+          \    outputs = NamedTuple('outputs', metrics=dict)\n    return outputs(metrics_dict)\n\
+          \n"
+        image: python:3.10.7-slim
+    exec-upload-model-to-gcs:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - upload_model_to_gcs
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef upload_model_to_gcs(project_id: str, model_repo: str, model:\
+          \ Input[Model]):\n    '''upload model to gsc'''\n    from google.cloud import\
+          \ storage   \n    import logging \n    import sys\n\n    logging.basicConfig(stream=sys.stdout,\
+          \ level=logging.INFO)    \n\n    # upload the model to GCS\n    client =\
+          \ storage.Client(project=project_id)\n    bucket = client.bucket(model_repo)\n\
+          \    blob = bucket.blob(str(model.metadata[\"algo\"]) + '_model' + str(model.metadata[\"\
+          file_type\"])) \n    blob.upload_from_filename(model.path + str(model.metadata[\"\
+          file_type\"]))       \n\n    print(\"Saved the model to GCP bucket : \"\
+          \ + model_repo)\n\n"
+        image: python:3.10.7-slim
+    exec-upload-model-to-gcs-2:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - upload_model_to_gcs
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef upload_model_to_gcs(project_id: str, model_repo: str, model:\
+          \ Input[Model]):\n    '''upload model to gsc'''\n    from google.cloud import\
+          \ storage   \n    import logging \n    import sys\n\n    logging.basicConfig(stream=sys.stdout,\
+          \ level=logging.INFO)    \n\n    # upload the model to GCS\n    client =\
+          \ storage.Client(project=project_id)\n    bucket = client.bucket(model_repo)\n\
+          \    blob = bucket.blob(str(model.metadata[\"algo\"]) + '_model' + str(model.metadata[\"\
+          file_type\"])) \n    blob.upload_from_filename(model.path + str(model.metadata[\"\
+          file_type\"]))       \n\n    print(\"Saved the model to GCP bucket : \"\
+          \ + model_repo)\n\n"
+        image: python:3.10.7-slim
+pipelineInfo:
+  name: diabetes-prdictor-training-pipeline-v2
+root:
+  dag:
+    tasks:
+      compare-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-compare-model
+        dependentTasks:
+        - train-lr
+        - train-mlp
+        inputs:
+          parameters:
+            lr_metrics:
+              taskOutputParameter:
+                outputParameterKey: metrics
+                producerTask: train-lr
+            mlp_metrics:
+              taskOutputParameter:
+                outputParameterKey: metrics
+                producerTask: train-mlp
+        taskInfo:
+          name: compare-model
+      condition-1:
+        componentRef:
+          name: comp-condition-1
+        dependentTasks:
+        - compare-model
+        - download-data-2
+        - train-mlp
+        inputs:
+          artifacts:
+            pipelinechannel--download-data-2-dataset:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: download-data-2
+            pipelinechannel--train-mlp-out_model:
+              taskOutputArtifact:
+                outputArtifactKey: out_model
+                producerTask: train-mlp
+          parameters:
+            pipelinechannel--compare-model-Output:
+              taskOutputParameter:
+                outputParameterKey: Output
+                producerTask: compare-model
+            pipelinechannel--model_repo:
+              componentInputParameter: model_repo
+            pipelinechannel--project_id:
+              componentInputParameter: project_id
+        taskInfo:
+          name: condition-1
+        triggerPolicy:
+          condition: inputs.parameter_values['pipelinechannel--compare-model-Output']
+            == 'MLP'
+      condition-2:
+        componentRef:
+          name: comp-condition-2
+        dependentTasks:
+        - compare-model
+        - download-data-2
+        - train-lr
+        inputs:
+          artifacts:
+            pipelinechannel--download-data-2-dataset:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: download-data-2
+            pipelinechannel--train-lr-out_model:
+              taskOutputArtifact:
+                outputArtifactKey: out_model
+                producerTask: train-lr
+          parameters:
+            pipelinechannel--compare-model-Output:
+              taskOutputParameter:
+                outputParameterKey: Output
+                producerTask: compare-model
+            pipelinechannel--model_repo:
+              componentInputParameter: model_repo
+            pipelinechannel--project_id:
+              componentInputParameter: project_id
+        taskInfo:
+          name: condition-2
+        triggerPolicy:
+          condition: inputs.parameter_values['pipelinechannel--compare-model-Output']
+            == 'LR'
+      download-data:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-download-data
+        inputs:
+          parameters:
+            bucket:
+              componentInputParameter: data_bucket
+            file_name:
+              componentInputParameter: trainset_filename
+            project_id:
+              componentInputParameter: project_id
+        taskInfo:
+          name: download-data
+      download-data-2:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-download-data-2
+        dependentTasks:
+        - train-lr
+        - train-mlp
+        inputs:
+          parameters:
+            bucket:
+              componentInputParameter: data_bucket
+            file_name:
+              componentInputParameter: testset_filename
+            project_id:
+              componentInputParameter: project_id
+        taskInfo:
+          name: download-data-2
+      train-lr:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-train-lr
+        dependentTasks:
+        - download-data
+        inputs:
+          artifacts:
+            features:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: download-data
+        taskInfo:
+          name: train-lr
+      train-mlp:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-train-mlp
+        dependentTasks:
+        - download-data
+        inputs:
+          artifacts:
+            features:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: download-data
+        taskInfo:
+          name: train-mlp
+  inputDefinitions:
+    parameters:
+      data_bucket:
+        parameterType: STRING
+      model_repo:
+        parameterType: STRING
+      project_id:
+        parameterType: STRING
+      testset_filename:
+        parameterType: STRING
+      trainset_filename:
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0
