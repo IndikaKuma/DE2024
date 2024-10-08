@@ -1,0 +1,25 @@
+{
+ "steps": [
+
+  {
+       "name": "gcr.io/cloud-builders/gsutil",
+       "args": [
+           "cp",           
+		   "gs://${_CONF_REPO}/parameters.json",
+           ".",
+        ]
+   },
+   {
+       "name": "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/pipeline-executor:0.0.1",
+       "args": [
+           "--name=diabetes-predictor-pipeline",           
+		   "--pipeline_def=./lab5/diabetes_predictor_training_pipeline.yaml",
+           "--pipeline_root=gs://${_TEMP_REPO}",         
+		   "--parameter_dict=./parameters.json"
+        ]
+   }
+   ],
+     "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
+  }
+ }
