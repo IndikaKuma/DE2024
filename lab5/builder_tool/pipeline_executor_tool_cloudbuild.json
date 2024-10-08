@@ -16,5 +16,8 @@
         "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/pipeline-executor:0.0.1"
       ]
     }
-   ]
+   ],
+     "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
+  }
  }

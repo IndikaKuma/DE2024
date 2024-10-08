@@ -32,5 +32,8 @@
         "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/mlptrainer:0.0.1"
       ]
     }
-   ]
+   ],
+     "options": {
+    "logging": "CLOUD_LOGGING_ONLY"
+  }
 }
