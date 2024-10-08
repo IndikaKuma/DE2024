@@ -1,0 +1,125 @@
+# PIPELINE DEFINITION
+# Name: diabetes-predictor-mlp
+# Inputs:
+#    data_bucket: str
+#    model_repo: str
+#    project_id: str
+#    trainset_filename: str
+components:
+  comp-data-ingestion:
+    executorLabel: exec-data-ingestion
+    inputDefinitions:
+      parameters:
+        bucket:
+          parameterType: STRING
+        data_file_name:
+          parameterType: STRING
+        project:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        features:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+  comp-mlp-training:
+    executorLabel: exec-mlp-training
+    inputDefinitions:
+      artifacts:
+        features:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+      parameters:
+        model_bucket:
+          parameterType: STRING
+        project:
+          parameterType: STRING
+    outputDefinitions:
+      parameters:
+        metrics:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-data-ingestion:
+      container:
+        args:
+        - --project_id
+        - '{{$.inputs.parameters[''project'']}}'
+        - --bucket
+        - '{{$.inputs.parameters[''bucket'']}}'
+        - --file_name
+        - '{{$.inputs.parameters[''data_file_name'']}}'
+        - --feature_path
+        - '{{$.outputs.artifacts[''features''].path}}'
+        command:
+        - python3
+        - /pipelines/component/src/component.py
+        image: us-central1-docker.pkg.dev/de2024-434212/labrepo/dataingestor:0.0.1
+    exec-mlp-training:
+      container:
+        args:
+        - --project_id
+        - '{{$.inputs.parameters[''project'']}}'
+        - --feature_path
+        - '{{$.inputs.artifacts[''features''].path}}'
+        - --model_repo
+        - '{{$.inputs.parameters[''model_bucket'']}}'
+        - --metrics_path
+        - '{{$.outputs.parameters[''metrics''].output_file}}'
+        command:
+        - python3
+        - /pipelines/component/src/component.py
+        image: us-central1-docker.pkg.dev/de2024-434212/labrepo/mlptrainer:0.0.1
+pipelineInfo:
+  name: diabetes-predictor-mlp
+root:
+  dag:
+    tasks:
+      data-ingestion:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-data-ingestion
+        inputs:
+          parameters:
+            bucket:
+              componentInputParameter: data_bucket
+            data_file_name:
+              componentInputParameter: trainset_filename
+            project:
+              componentInputParameter: project_id
+        taskInfo:
+          name: data-ingestion
+      mlp-training:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-mlp-training
+        dependentTasks:
+        - data-ingestion
+        inputs:
+          artifacts:
+            features:
+              taskOutputArtifact:
+                outputArtifactKey: features
+                producerTask: data-ingestion
+          parameters:
+            model_bucket:
+              componentInputParameter: model_repo
+            project:
+              componentInputParameter: project_id
+        taskInfo:
+          name: mlp-training
+  inputDefinitions:
+    parameters:
+      data_bucket:
+        parameterType: STRING
+      model_repo:
+        parameterType: STRING
+      project_id:
+        parameterType: STRING
+      trainset_filename:
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0
