@@ -1,5 +1,5 @@
 {
-  "project_id": "your projec id",
+  "project_id": "your project id",
   "data_bucket": "your data bucket",
   "trainset_filename": "training_set.csv",
   "model_repo": "your project model repo"
