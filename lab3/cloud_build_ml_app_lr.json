@@ -4,7 +4,7 @@
        "name": "gcr.io/cloud-builders/gsutil",
        "args": [
            "cp",
-		   "gs://YOUR_MODEL_REPO/lr_model.pkl",
+		   "gs://${_MODEL_REPO}/lr_model.pkl",
            "./lab2/prediction-api-lr/model.pkl"
         ]
     },
