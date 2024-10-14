@@ -1,2 +1,2 @@
-#### NOTE Replace "de2024-434212" in diabetes_predictor_mlp.yaml or use your own pipeline (compiled from notebook). Remember to push changes to your GitHub repository 
+#### NOTE In Lab 5 (offline lab), before running the last CI-CD pipeline (for MLP), please replace "de2024-434212" in diabetes_predictor_mlp.yaml with your project ID or use your own pipeline YAML file (compiled from the notebook). Remember to push changes to the YAML files to your GitHub repository before running the CI-CD pipeline.
 
