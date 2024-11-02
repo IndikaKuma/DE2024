@@ -1,0 +1,113 @@
+volumes:
+  spark-data:
+    driver_opts:
+      type: none
+      device: /home/${USER_HOME}/data
+      o: bind
+  notebooks:
+    driver_opts:
+      type: none
+      device: /home/${USER_HOME}/notebooks
+      o: bind
+  spark-checkpoint:
+    driver_opts:
+      type: none
+      device: /home/${USER_HOME}/checkpoint
+      o: bind
+services:
+  spark-driver-app:
+    build:
+      context: ./jupyter-all-spark-notebook-gcp    # jupyter/all-spark-notebook with spark configurations for bigquery and gcs
+    container_name: spark-driver-app
+    user: root
+    ports:
+      - "8888:8888"
+      - "4040-4050:4040-4050"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - notebooks:/home/jovyan/notebooks  # jovyan is the default user of the image all-spark-notebook:spark-3.1.2. Do not change this
+      - spark-data:/home/jovyan/data
+      - spark-checkpoint:/home/jovyan/checkpoint
+  spark-master:
+    build:
+      context: ./spark-bitnami-python3.11
+    container_name: spark-master
+    user: root
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_DAEMON_MEMORY=2G
+      - SPARK_MASTER_OPTS="-Dspark.deploy.defaultCores=1"
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - spark-data:/home/jovyan/data
+      - spark-checkpoint:/home/jovyan/checkpoint
+  spark-worker-1:
+    build:
+      context: ./spark-bitnami-python3.11
+    container_name: spark-worker-1
+    user: root
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - "8081:8081"
+    volumes:
+      - spark-data:/home/jovyan/data
+      - spark-checkpoint:/home/jovyan/checkpoint
+  spark-worker-2:
+    build:
+      context: ./spark-bitnami-python3.11
+    container_name: spark-worker-2
+    user: root
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - "8082:8081"
+    volumes:
+      - spark-data:/home/jovyan/data
+      - spark-checkpoint:/home/jovyan/checkpoint
+  zookeeper:
+    image: zookeeper:3.4.9
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+  kafka1:
+    image: confluentinc/cp-kafka:5.2.5
+    hostname: kafka1
+    container_name: kafka1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:9093,LISTENER_DOCKER_EXTERNAL://${EXTERNAL_IP}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
