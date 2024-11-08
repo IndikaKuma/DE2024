@@ -1,0 +1,44 @@
+services:
+  training_api:
+    build:
+      context: training-api
+    container_name: training_api
+    environment:
+      - MODEL_REPO=/usr/src/myapp/models
+    ports:
+      - "5002:5000"
+    networks:
+      - network-b
+    volumes:
+      - "/home/indika_kuma/models:/usr/src/myapp/models"
+  prediction_api:
+    build:
+      context: prediction-api
+    container_name: prediction_api
+    depends_on:
+      - training_api
+    ports:
+      - "5001:5000"
+    networks:
+      - network-a
+      - network-b
+    environment:
+      - MODEL_REPO=/usr/src/myapp/models
+    volumes:
+      - "/home/indika_kuma/models:/usr/src/myapp/models"
+  prediction_ui:
+    build:
+      context: prediction-ui
+    container_name: prediction_ui
+    depends_on:
+      - prediction_api
+    ports:
+      - "5000:5000"
+    networks:
+      - network-a
+    environment:
+      - PREDICTOR_API=http://prediction_api:5000/diabetes_predictor
+
+networks:
+  network-a:
+  network-b:
